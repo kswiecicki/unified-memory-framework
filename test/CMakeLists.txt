@@ -62,4 +62,5 @@ add_umf_test(NAME c_api_disjoint_pool SRCS c_api/disjoint_pool.c)
 
 if(LINUX) # OS-specific functions are implemented only for Linux now
     add_umf_test(NAME provider_os_memory SRCS provider_os_memory.cpp LIBS numa)
+    add_umf_test(NAME memspace_numa SRCS memspace_numa.cpp LIBS numa)
 endif()
