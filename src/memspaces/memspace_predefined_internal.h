@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef UMF_MEMSPACE_HOST_ALL_INTERNAL_H
-#define UMF_MEMSPACE_HOST_ALL_INTERNAL_H 1
+#ifndef UMF_MEMSPACE_PREDEFINED_INTERNAL_H
+#define UMF_MEMSPACE_PREDEFINED_INTERNAL_H 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,8 +19,13 @@ extern "C" {
 ///
 void umfMemspaceHostAllDestroy(void);
 
+///
+/// \brief Destroys the predefined high bandwidth memspace.
+///
+void umfMemspaceHBWDestroy(void);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* UMF_MEMSPACE_HOST_ALL_INTERNAL_H */
+#endif /* UMF_MEMSPACE_PREDEFINED_INTERNAL_H */

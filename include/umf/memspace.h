@@ -50,6 +50,12 @@ umfMemoryProviderCreateFromMemspace(umf_memspace_handle_t hMemspace,
 ///
 umf_memspace_handle_t umfMemspaceHostAllGet(void);
 
+///
+/// \brief Retrieves predefined high bandwidth memspace.
+/// \return host all memspace handle on success or NULL on failure.
+///
+umf_memspace_handle_t umfMemspaceHBWGet(void);
+
 #ifdef __cplusplus
 }
 #endif

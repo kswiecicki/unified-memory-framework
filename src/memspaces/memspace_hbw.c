@@ -15,10 +15,9 @@
 #include "memory_target_numa.h"
 #include "memspace_internal.h"
 #include "memspace_numa.h"
-#include "memspace_predefined_internal.h"
 #include "utils_concurrency.h"
 
-static umf_result_t umfMemspaceHostAllCreate(umf_memspace_handle_t *hMemspace) {
+static umf_result_t umfMemspaceHBWCreate(umf_memspace_handle_t *hMemspace) {
     if (!hMemspace) {
         return UMF_RESULT_ERROR_INVALID_ARGUMENT;
     }
@@ -40,10 +39,7 @@ static umf_result_t umfMemspaceHostAllCreate(umf_memspace_handle_t *hMemspace) {
     // object that can be present on multiple levels.
     // Source: https://www.open-mpi.org/projects/hwloc/doc/hwloc-v2.10.0-letter.pdf
     int nNodes = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_NUMANODE);
-    if (nNodes < 0) {
-        umf_ret = UMF_RESULT_ERROR_UNKNOWN;
-        goto err_topology_destroy;
-    }
+    assert(nNodes != -1);
 
     size_t *nodeIds = umf_ba_global_alloc(nNodes * sizeof(size_t));
     if (!nodeIds) {
@@ -59,6 +55,23 @@ static umf_result_t umfMemspaceHostAllCreate(umf_memspace_handle_t *hMemspace) {
         // Shouldn't be possible to iterate over more 'HWLOC_OBJ_NUMANODE' objects
         // than the number returned by hwloc_get_nbobjs_by_type.
         assert(nodeIdx < nNodes);
+
+        fprintf(stderr, "Numa node: %u \n", numaNodeObj->os_index);
+        struct hwloc_location initiator = {0};
+        hwloc_uint64_t value = 0;
+        int ret =
+            hwloc_memattr_get_best_initiator(topology, HWLOC_MEMATTR_ID_BANDWIDTH,
+                                             numaNodeObj, 0, &initiator, &value);
+        assert(errno != ENOENT);
+        assert(errno != EINVAL);
+        assert(ret == 0);
+        // hwloc_uint64_t value = 0;
+        // int ret = hwloc_memattr_get_value(topology, HWLOC_MEMATTR_ID_BANDWIDTH,
+        //                                   numaNodeObj, NULL, 0, &value);
+        // assert(errno != ENOENT);
+        // assert(errno != EINVAL);
+        // assert(ret == 0);
+        // fprintf(stderr, "Numa node value: %lu \n", value);
         nodeIds[nodeIdx++] = numaNodeObj->os_index;
     }
 
@@ -72,27 +85,27 @@ err_topology_destroy:
     return umf_ret;
 }
 
-static umf_memspace_handle_t UMF_MEMSPACE_HOST_ALL = NULL;
-static UTIL_ONCE_FLAG UMF_MEMSPACE_HOST_ALL_INITIALIZED = UTIL_ONCE_FLAG_INIT;
+static umf_memspace_handle_t UMF_MEMSPACE_HBW = NULL;
+static UTIL_ONCE_FLAG UMF_MEMSPACE_HBW_INITIALIZED = UTIL_ONCE_FLAG_INIT;
 
-void umfMemspaceHostAllDestroy(void) {
-    if (UMF_MEMSPACE_HOST_ALL) {
-        umfMemspaceDestroy(UMF_MEMSPACE_HOST_ALL);
-        UMF_MEMSPACE_HOST_ALL = NULL;
+void umfMemspaceHBWDestroy(void) {
+    if (UMF_MEMSPACE_HBW) {
+        umfMemspaceDestroy(UMF_MEMSPACE_HBW);
+        UMF_MEMSPACE_HBW = NULL;
     }
 }
 
-static void umfMemspaceHostAllInit(void) {
-    umf_result_t ret = umfMemspaceHostAllCreate(&UMF_MEMSPACE_HOST_ALL);
+static void umfMemspaceHBWInit(void) {
+    umf_result_t ret = umfMemspaceHBWCreate(&UMF_MEMSPACE_HBW);
     assert(ret == UMF_RESULT_SUCCESS);
     (void)ret;
 
-    // TODO: Setup appropriate cleanup when 'HOST ALL' memspace becomes available
-    // on Windows. 'HOST ALL' memspace depends on OS provider, which currently
+    // TODO: Setup appropriate cleanup when HBW memspace becomes available
+    // on Windows. HBW memspace depends on OS provider, which currently
     // doesn't support Windows.
 }
 
-umf_memspace_handle_t umfMemspaceHostAllGet(void) {
-    util_init_once(&UMF_MEMSPACE_HOST_ALL_INITIALIZED, umfMemspaceHostAllInit);
-    return UMF_MEMSPACE_HOST_ALL;
+umf_memspace_handle_t umfMemspaceHBWGet(void) {
+    util_init_once(&UMF_MEMSPACE_HBW_INITIALIZED, umfMemspaceHBWInit);
+    return UMF_MEMSPACE_HBW;
 }

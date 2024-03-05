@@ -62,7 +62,8 @@ if(UMF_BUILD_OS_MEMORY_PROVIDER)
         provider/provider_os_memory_linux.c
         memory_targets/memory_target_numa.c
         memspaces/memspace_numa.c
-        memspaces/memspace_host_all.c)
+        memspaces/memspace_host_all.c
+        memspaces/memspace_hbw.c)
 
     set(UMF_SOURCES_WINDOWS ${UMF_SOURCES_WINDOWS}
         provider/provider_os_memory.c
@@ -83,7 +84,7 @@ if(UMF_BUILD_LEVEL_ZERO_PROVIDER)
         provider/provider_level_zero.c)
 
     if(LINUX)
-        set(UMF_COMPILE_DEFINITIONS ${UMF_COMPILE_DEFINITIONS} 
+        set(UMF_COMPILE_DEFINITIONS ${UMF_COMPILE_DEFINITIONS}
             "UMF_BUILD_LEVEL_ZERO_PROVIDER=1")
     endif()
 endif()

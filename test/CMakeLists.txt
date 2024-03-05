@@ -149,6 +149,9 @@ if(UMF_BUILD_OS_MEMORY_PROVIDER AND LINUX) # OS-specific functions are implement
     add_umf_test(NAME memspace_host_all
                  SRCS memspaces/memspace_host_all.cpp
                  LIBS umf_utils ${LIBNUMA_LIBRARIES})
+    add_umf_test(NAME memspace_hbw
+                 SRCS memspaces/memspace_hbw.cpp
+                 LIBS umf_utils ${LIBNUMA_LIBRARIES})
 endif()
 
 # TODO add support for Windows
