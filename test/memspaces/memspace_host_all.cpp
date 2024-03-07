@@ -99,9 +99,9 @@ static void getAllocationPolicy(void *ptr, unsigned long maxNodeId, int &mode,
 
 TEST_F(memspaceHostAllProviderTest, allocsSpreadAcrossAllNumaNodes) {
     // This testcase is unsuitable for TSan.
-#ifdef __SANITIZE_THREAD__
-    GTEST_SKIP();
-#endif
+    // #ifdef __SANITIZE_THREAD__
+    //     GTEST_SKIP();
+    // #endif
 
     // Arbitrary allocation size, should be big enough to avoid unnecessarily
     // prolonging the test execution.
