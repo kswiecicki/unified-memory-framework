@@ -47,6 +47,7 @@ void umfMemspaceDestroy(umf_memspace_handle_t hMemspace);
 
 void umfMemspaceHostAllDestroy(void);
 void umfMemspaceHighestCapacityDestroy(void);
+void umfMemspaceHighestBandwidthDestroy(void);
 
 #ifdef __cplusplus
 }

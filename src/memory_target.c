@@ -84,3 +84,11 @@ umf_result_t umfMemoryTargetGetCapacity(umf_memory_target_handle_t memoryTarget,
     assert(capacity);
     return memoryTarget->ops->get_capacity(memoryTarget->priv, capacity);
 }
+
+umf_result_t
+umfMemoryTargetGetBandwidth(umf_memory_target_handle_t memoryTarget,
+                            size_t *bandwidth) {
+    assert(memoryTarget);
+    assert(bandwidth);
+    return memoryTarget->ops->get_bandwidth(memoryTarget->priv, bandwidth);
+}

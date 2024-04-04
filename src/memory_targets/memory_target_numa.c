@@ -195,6 +195,40 @@ static umf_result_t numa_get_capacity(void *memTarget, size_t *capacity) {
     return UMF_RESULT_SUCCESS;
 }
 
+static umf_result_t numa_get_bandwidth(void *memTarget, size_t *bandwidth) {
+    hwloc_topology_t topology = umfGetTopology();
+    if (!topology) {
+        return UMF_RESULT_ERROR_NOT_SUPPORTED;
+    }
+
+    hwloc_obj_t numaNode = hwloc_get_obj_by_type(
+        topology, HWLOC_OBJ_NUMANODE,
+        ((struct numa_memory_target_t *)memTarget)->physical_id);
+    if (!numaNode) {
+        return UMF_RESULT_ERROR_INVALID_ARGUMENT;
+    }
+
+    umf_result_t umf_ret = UMF_RESULT_SUCCESS;
+
+    hwloc_const_cpuset_t cCpuset = hwloc_topology_get_allowed_cpuset(topology);
+    hwloc_cpuset_t cpuset = hwloc_bitmap_dup(cCpuset);
+    struct hwloc_location initiator = {.location.cpuset = cpuset,
+                                       .type = HWLOC_LOCATION_TYPE_CPUSET};
+    hwloc_uint64_t value = 0;
+    int ret = hwloc_memattr_get_value(topology, HWLOC_MEMATTR_ID_BANDWIDTH,
+                                      numaNode, &initiator, 0, &value);
+    if (ret) {
+        umf_ret = (errno == EINVAL) ? UMF_RESULT_ERROR_NOT_SUPPORTED
+                                    : UMF_RESULT_ERROR_UNKNOWN;
+        goto err;
+    }
+
+    *bandwidth = value;
+err:
+    hwloc_bitmap_free(cpuset);
+    return umf_ret;
+}
+
 struct umf_memory_target_ops_t UMF_MEMORY_TARGET_NUMA_OPS = {
     .version = UMF_VERSION_CURRENT,
     .initialize = numa_initialize,
@@ -202,5 +236,6 @@ struct umf_memory_target_ops_t UMF_MEMORY_TARGET_NUMA_OPS = {
     .pool_create_from_memspace = numa_pool_create_from_memspace,
     .clone = numa_clone,
     .get_capacity = numa_get_capacity,
+    .get_bandwidth = numa_get_bandwidth,
     .memory_provider_create_from_memspace =
         numa_memory_provider_create_from_memspace};

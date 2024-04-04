@@ -179,6 +179,10 @@ if(LINUX) # OS-specific functions are implemented only for Linux now
         NAME memspace_highest_capacity
         SRCS memspaces/memspace_highest_capacity.cpp
         LIBS ${UMF_UTILS_FOR_TEST} ${LIBNUMA_LIBRARIES})
+    add_umf_test(
+        NAME memspace_highest_bandwidth
+        SRCS memspaces/memspace_highest_bandwidth.cpp
+        LIBS ${UMF_UTILS_FOR_TEST} ${LIBNUMA_LIBRARIES})
 endif()
 
 # TODO add support for Windows
