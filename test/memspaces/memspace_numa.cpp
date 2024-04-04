@@ -9,9 +9,50 @@
 
 #include <umf/providers/provider_os_memory.h>
 
+struct memspaceNumaTest : ::numaNodesTest {
+    void SetUp() override {
+        ::numaNodesTest::SetUp();
+
+        umf_result_t ret = umfMemspaceCreateFromNumaArray(
+            nodeIds.data(), nodeIds.size(), &hMemspace);
+        ASSERT_EQ(ret, UMF_RESULT_SUCCESS);
+        ASSERT_NE(hMemspace, nullptr);
+    }
+
+    void TearDown() override {
+        ::numaNodesTest::TearDown();
+        if (hMemspace) {
+            umfMemspaceDestroy(hMemspace);
+        }
+    }
+
+    umf_memspace_handle_t hMemspace = nullptr;
+};
+
+struct memspaceNumaProviderTest : ::memspaceNumaTest {
+    void SetUp() override {
+        ::memspaceNumaTest::SetUp();
+
+        umf_result_t ret =
+            umfMemoryProviderCreateFromMemspace(hMemspace, nullptr, &hProvider);
+        ASSERT_EQ(ret, UMF_RESULT_SUCCESS);
+        ASSERT_NE(hProvider, nullptr);
+    }
+
+    void TearDown() override {
+        ::memspaceNumaTest::TearDown();
+
+        if (hProvider != nullptr) {
+            umfMemoryProviderDestroy(hProvider);
+        }
+    }
+
+    umf_memory_provider_handle_t hProvider = nullptr;
+};
+
 TEST_F(numaNodesTest, createDestroy) {
     umf_memspace_handle_t hMemspace = nullptr;
-    enum umf_result_t ret = umfMemspaceCreateFromNumaArray(
+    umf_result_t ret = umfMemspaceCreateFromNumaArray(
         nodeIds.data(), nodeIds.size(), &hMemspace);
     ASSERT_EQ(ret, UMF_RESULT_SUCCESS);
     ASSERT_NE(hMemspace, nullptr);
@@ -21,28 +62,28 @@ TEST_F(numaNodesTest, createDestroy) {
 
 TEST_F(numaNodesTest, createInvalidNullArray) {
     umf_memspace_handle_t hMemspace = nullptr;
-    enum umf_result_t ret = umfMemspaceCreateFromNumaArray(NULL, 0, &hMemspace);
+    umf_result_t ret = umfMemspaceCreateFromNumaArray(NULL, 0, &hMemspace);
     ASSERT_EQ(ret, UMF_RESULT_ERROR_INVALID_ARGUMENT);
     ASSERT_EQ(hMemspace, nullptr);
 }
 
 TEST_F(numaNodesTest, createInvalidZeroSize) {
     umf_memspace_handle_t hMemspace = nullptr;
-    enum umf_result_t ret =
+    umf_result_t ret =
         umfMemspaceCreateFromNumaArray(nodeIds.data(), 0, &hMemspace);
     ASSERT_EQ(ret, UMF_RESULT_ERROR_INVALID_ARGUMENT);
     ASSERT_EQ(hMemspace, nullptr);
 }
 
 TEST_F(numaNodesTest, createInvalidNullHandle) {
-    enum umf_result_t ret =
+    umf_result_t ret =
         umfMemspaceCreateFromNumaArray(nodeIds.data(), nodeIds.size(), nullptr);
     ASSERT_EQ(ret, UMF_RESULT_ERROR_INVALID_ARGUMENT);
 }
 
 TEST_F(memspaceNumaTest, providerFromNumaMemspace) {
     umf_memory_provider_handle_t hProvider = nullptr;
-    enum umf_result_t ret =
+    umf_result_t ret =
         umfMemoryProviderCreateFromMemspace(hMemspace, nullptr, &hProvider);
     ASSERT_EQ(ret, UMF_RESULT_SUCCESS);
     ASSERT_NE(hProvider, nullptr);
@@ -55,8 +96,7 @@ TEST_F(memspaceNumaProviderTest, allocFree) {
     size_t size = SIZE_4K;
     size_t alignment = 0;
 
-    enum umf_result_t ret =
-        umfMemoryProviderAlloc(hProvider, size, alignment, &ptr);
+    umf_result_t ret = umfMemoryProviderAlloc(hProvider, size, alignment, &ptr);
     ASSERT_EQ(ret, UMF_RESULT_SUCCESS);
     ASSERT_NE(ptr, nullptr);
 
