@@ -26,19 +26,19 @@ static bool canQueryBandwidth(size_t nodeId) {
     UT_ASSERTne(numaNode, nullptr);
 
     // Get local cpuset.
-    hwloc_const_cpuset_t cCpuset = hwloc_topology_get_allowed_cpuset(topology);
-    hwloc_cpuset_t cpuset = hwloc_bitmap_dup(cCpuset);
+    // hwloc_const_cpuset_t cCpuset = hwloc_topology_get_allowed_cpuset(topology);
+    // hwloc_cpuset_t cpuset = hwloc_bitmap_dup(cCpuset);
 
     // Setup initiator structure.
     struct hwloc_location initiator;
-    initiator.location.cpuset = cpuset;
+    initiator.location.cpuset = numaNode->cpuset;
     initiator.type = HWLOC_LOCATION_TYPE_CPUSET;
 
     hwloc_uint64_t value = 0;
     ret = hwloc_memattr_get_value(topology, HWLOC_MEMATTR_ID_BANDWIDTH,
                                   numaNode, &initiator, 0, &value);
 
-    hwloc_bitmap_free(cpuset);
+    // hwloc_bitmap_free(cpuset);
     hwloc_topology_destroy(topology);
     return (ret == 0);
 }

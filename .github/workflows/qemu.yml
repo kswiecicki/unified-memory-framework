@@ -1,7 +1,10 @@
 # Builds project on qemu with custom hmat settings
 name: Qemu
 
-on: workflow_call
+on:
+  workflow_dispatch:
+  schedule:
+    - cron:  '0 0 * * *'
 
 env:
   CI_BRANCH : "${{ github.head_ref || github.ref_name }}"
