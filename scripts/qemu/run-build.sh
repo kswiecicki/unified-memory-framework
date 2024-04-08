@@ -38,7 +38,7 @@ cmake .. \
 
 make -j $(nproc)
 
-ctest --output-on-failure
+ctest --output-on-failure --verbose
 
 # run tests bound to a numa node
 numactl -N 0 ctest --output-on-failure
