@@ -86,9 +86,12 @@ umf_result_t umfMemoryTargetGetCapacity(umf_memory_target_handle_t memoryTarget,
 }
 
 umf_result_t
-umfMemoryTargetGetBandwidth(umf_memory_target_handle_t memoryTarget,
+umfMemoryTargetGetBandwidth(umf_memory_target_handle_t srcMemoryTarget,
+                            umf_memory_target_handle_t dstMemoryTarget,
                             size_t *bandwidth) {
-    assert(memoryTarget);
+    assert(srcMemoryTarget);
+    assert(dstMemoryTarget);
     assert(bandwidth);
-    return memoryTarget->ops->get_bandwidth(memoryTarget->priv, bandwidth);
+    return srcMemoryTarget->ops->get_bandwidth(
+        srcMemoryTarget->priv, dstMemoryTarget->priv, bandwidth);
 }

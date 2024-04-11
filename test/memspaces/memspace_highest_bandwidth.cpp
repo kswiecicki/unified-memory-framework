@@ -14,6 +14,36 @@
 
 using umf_test::test;
 
+// In HWLOC v2.3.0, the 'hwloc_location_type_e' enum is defined inside an
+// 'hwloc_location' struct. In newer versions, this enum is defined globally.
+// To prevent compile errors in C++ tests related this scope change
+// 'hwloc_location_type_e' has been conditionally aliased depending on the
+// actual location of the enum definition.
+template <typename T> struct has_hwloc_location_type_e {
+  private:
+    template <typename U>
+    static auto test() -> decltype(U::hwloc_location_type_e, std::true_type{});
+    template <typename> static std::false_type test(...);
+
+  public:
+    static constexpr bool value = decltype(test<T>())::value;
+};
+
+template <typename T, bool = has_hwloc_location_type_e<T>::value>
+struct conditional_hwloc_location_type_e;
+
+template <typename T> struct conditional_hwloc_location_type_e<T, true> {
+    using type = typename T::hwloc_location_type_e;
+};
+
+template <typename T> struct conditional_hwloc_location_type_e<T, false> {
+    using type = hwloc_location_type_e;
+};
+
+// Alias for hwloc_location_type_e
+using hwloc_location_type_e_alias =
+    typename conditional_hwloc_location_type_e<hwloc_location>::type;
+
 static bool canQueryBandwidth(size_t nodeId) {
     hwloc_topology_t topology = nullptr;
     int ret = hwloc_topology_init(&topology);
@@ -25,20 +55,15 @@ static bool canQueryBandwidth(size_t nodeId) {
         hwloc_get_obj_by_type(topology, HWLOC_OBJ_NUMANODE, nodeId);
     UT_ASSERTne(numaNode, nullptr);
 
-    // Get local cpuset.
-    // hwloc_const_cpuset_t cCpuset = hwloc_topology_get_allowed_cpuset(topology);
-    // hwloc_cpuset_t cpuset = hwloc_bitmap_dup(cCpuset);
-
     // Setup initiator structure.
     struct hwloc_location initiator;
     initiator.location.cpuset = numaNode->cpuset;
-    initiator.type = HWLOC_LOCATION_TYPE_CPUSET;
+    initiator.type = hwloc_location_type_e_alias::HWLOC_LOCATION_TYPE_CPUSET;
 
     hwloc_uint64_t value = 0;
-    ret = hwloc_memattr_get_value(topology, HWLOC_MEMATTR_ID_BANDWIDTH,
+    ret = hwloc_memattr_get_value(topology, HWLOC_MEMATTR_ID_READ_BANDWIDTH,
                                   numaNode, &initiator, 0, &value);
 
-    // hwloc_bitmap_free(cpuset);
     hwloc_topology_destroy(topology);
     return (ret == 0);
 }

@@ -71,6 +71,31 @@ static umf_result_t getenv_to_nodes_array(char *envStr, size_t *arr,
     return UMF_RESULT_SUCCESS;
 }
 
+static umf_result_t getBestBandwidthTarget(umf_memory_target_handle_t initiator,
+                                           umf_memory_target_handle_t *nodes,
+                                           size_t numNodes,
+                                           umf_memory_target_handle_t *target) {
+    size_t bestNodeIdx = 0;
+    uint64_t bestBandwidth = 0;
+    for (size_t nodeIdx = 0; nodeIdx < numNodes; nodeIdx++) {
+        uint64_t bandwidth = 0;
+        umf_result_t ret =
+            umfMemoryTargetGetBandwidth(initiator, nodes[nodeIdx], &bandwidth);
+        if (ret) {
+            return ret;
+        }
+
+        if (bandwidth > bestBandwidth) {
+            bestNodeIdx = nodeIdx;
+            bestBandwidth = bandwidth;
+        }
+    }
+
+    *target = nodes[bestNodeIdx];
+
+    return UMF_RESULT_SUCCESS;
+}
+
 static umf_result_t
 umfMemspaceHighestBandwidthCreate(umf_memspace_handle_t *hMemspace) {
     if (!hMemspace) {
@@ -94,16 +119,9 @@ umfMemspaceHighestBandwidthCreate(umf_memspace_handle_t *hMemspace) {
     }
 
     umf_memspace_handle_t highBandwidthMemspace = NULL;
-    ret = umfMemspaceClone(hostAllMemspace, &highBandwidthMemspace);
+    ret = umfMemspaceFilter(hostAllMemspace, getBestBandwidthTarget,
+                            &highBandwidthMemspace);
     if (ret != UMF_RESULT_SUCCESS) {
-        return ret;
-    }
-
-    ret = umfMemspaceSortDesc(highBandwidthMemspace,
-                              (umfGetPropertyFn)&umfMemoryTargetGetBandwidth);
-    if (ret != UMF_RESULT_SUCCESS) {
-        // TODO: Should we have an alternative way to query 'bandwidth' value
-        //       of each NUMA node?
         // HWLOC could possibly return an 'EINVAL' error, which in this context
         // means that the HMAT is unavailable and we can't obtain the
         // 'bandwidth' value of any NUMA node.
