@@ -19,6 +19,7 @@
 #include "base_alloc_global.h"
 #include "memory_target_numa.h"
 #include "topology.h"
+#include "utils_log.h"
 
 struct numa_memory_target_t {
     unsigned physical_id;
@@ -177,6 +178,8 @@ static umf_result_t numa_get_bandwidth(void *srcMemoryTarget,
     int ret = hwloc_memattr_get_value(topology, HWLOC_MEMATTR_ID_BANDWIDTH,
                                       dstNumaNode, &initiator, 0, &value);
     if (ret) {
+        LOG_ERR("Retrieving bandwidth for initiator node %u to node %u failed.",
+                srcNumaNode->os_index, dstNumaNode->os_index);
         return (errno == EINVAL) ? UMF_RESULT_ERROR_NOT_SUPPORTED
                                  : UMF_RESULT_ERROR_UNKNOWN;
     }
