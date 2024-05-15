@@ -169,6 +169,13 @@ TEST_F(memspaceHighestBandwidthProviderTest, allocFreeMt) {
 
         // Confirm that the allocation from this thread was made to a local
         // NUMA node.
+        fprintf(stderr, "Node #%d\n", allocNodeId);
+        for (int i = 0; i < numa_max_node(); i++) {
+            if (numa_bitmask_isbitset(nodeCpus, i)) {
+                fprintf(stderr, "Cpuset bit #%d present\n", i);
+            }
+        }
+
         UT_ASSERT(numa_bitmask_isbitset(nodeCpus, cpu));
         numa_free_cpumask(nodeCpus);
 
